@@ -153,6 +153,7 @@
   <ItemGroup>
     <ClInclude Include="..\..\tinyrenderer-master\tinyrenderer-master\tgaimage.h" />
     <ClInclude Include="geometry.h" />
+    <ClInclude Include="GeometryUtility.h" />
     <ClInclude Include="Graphics.h" />
     <ClInclude Include="Math.h" />
     <ClInclude Include="model.h" />
@@ -161,6 +162,7 @@
     <ClInclude Include="tgaimage.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="GeometryUtility.cpp" />
     <ClCompile Include="Graphics.cpp" />
     <ClCompile Include="Math.cpp" />
     <ClCompile Include="model.cpp" />

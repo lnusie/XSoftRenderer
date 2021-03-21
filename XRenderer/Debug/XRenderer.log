@@ -1,1 +1,31 @@
-﻿  XRenderer.vcxproj -> F:\Projs\XRenderer\XRenderer\Debug\XRenderer.exe
+﻿  XRenderer.cpp
+d:\github\xrenderer\xrenderer\xrenderer.cpp(63): warning C4244: “初始化”: 从“double”转换到“int”，可能丢失数据
+d:\github\xrenderer\xrenderer\xrenderer.cpp(64): warning C4244: “初始化”: 从“double”转换到“int”，可能丢失数据
+d:\github\xrenderer\xrenderer\xrenderer.cpp(65): warning C4244: “初始化”: 从“double”转换到“int”，可能丢失数据
+d:\github\xrenderer\xrenderer\xrenderer.cpp(66): warning C4244: “初始化”: 从“double”转换到“int”，可能丢失数据
+d:\github\xrenderer\xrenderer\xrenderer.cpp(83): warning C4244: “参数”: 从“double”转换到“t”，可能丢失数据
+          with
+          [
+              t=int
+          ]
+d:\github\xrenderer\xrenderer\xrenderer.cpp(84): warning C4244: “参数”: 从“double”转换到“t”，可能丢失数据
+          with
+          [
+              t=int
+          ]
+d:\github\xrenderer\xrenderer\xrenderer.cpp(85): warning C4244: “参数”: 从“double”转换到“t”，可能丢失数据
+          with
+          [
+              t=int
+          ]
+d:\github\xrenderer\xrenderer\xrenderer.cpp(103): warning C4244: “参数”: 从“double”转换到“t”，可能丢失数据
+          with
+          [
+              t=int
+          ]
+d:\github\xrenderer\xrenderer\xrenderer.cpp(111): warning C4244: “参数”: 从“t”转换到“unsigned char”，可能丢失数据
+          with
+          [
+              t=float
+          ]
+  XRenderer.vcxproj -> D:\GitHub\XRenderer\Debug\XRenderer.exe

@@ -39,6 +39,9 @@
     <ClInclude Include="geometry.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="GeometryUtility.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -60,6 +63,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="model.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="GeometryUtility.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
