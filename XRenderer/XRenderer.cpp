@@ -27,7 +27,7 @@ TGAImage *texture = NULL;
 void DrawFlatTriangle(Model *model, TGAImage &image);
 void DrawWireframe(Model *model, TGAImage &image);
 void DrawModelWithSimpleLight(Model *model, TGAImage &image);
-void DrawModelWithTexture(Model *model, TGAImage &image, TGAImage &texture);
+void DrawModelWithTexture(Model *model, TGAImage &image, TGAImage *texture);
 
 int main(int argc, char** argv)
 {
@@ -57,9 +57,11 @@ int main(int argc, char** argv)
 	//DrawWireframe(model, image);
 	//DrawFlatTriangle(model, image);
 	//DrawModelWithSimpleLight(model, image);
+	DrawModelWithTexture(model, image, texture);
 	image.flip_vertically(); // i want to have the origin at the left bottom corner of the image
 	image.write_tga_file("output.tga");
 	delete model;
+	delete texture;
 	return 0;
 }
 
@@ -139,20 +141,23 @@ void DrawModelWithSimpleLight(Model *model, TGAImage &image)
 }
 
 //带贴图
-void DrawModelWithTexture(Model *model, TGAImage &image, TGAImage &texture)
+void DrawModelWithTexture(Model *model, TGAImage &image, TGAImage *texture)
 {
 	float* zBuffer = CreateZBuffer(width, height);
 	Vec3f lightDir = Vec3f(0, 0, 1);
 	lightDir.normalize();
 	Vec3f screen_coords[3];
 	Vec3f world_coords[3];
+	Vec2f uvs[3];
 	for (int i = 0; i < model->nfaces(); i++) {
 		std::vector<int> face = model->face(i);
+		std::vector<int> uvidxs = model->uvidx(i);
 		for (int j = 0; j < 3; j++)
 		{
 			Vec3f v = model->vert(face[j]);
 			world_coords[j] = v;
 			screen_coords[j] = World2Screen(v);
+			uvs[j] = model->uv(uvidxs[j]);
 		}
 		auto a = world_coords[1] - world_coords[0];
 		auto b = world_coords[2] - world_coords[0];
@@ -160,8 +165,8 @@ void DrawModelWithTexture(Model *model, TGAImage &image, TGAImage &texture)
 		auto intensity = normal * lightDir;
 		if (intensity > 0)
 		{
-			TGAColor color = TGAColor(255 * intensity, 255 * intensity, 255 * intensity, 255);
-			Graphics::DrawTriangle(screen_coords[0], screen_coords[1], screen_coords[2], image, color, zBuffer);
+			//TGAColor color = TGAColor(255 * intensity, 255 * intensity, 255 * intensity, 255);
+			Graphics::DrawTriangleWithTexture(screen_coords, uvs, image, zBuffer, texture);
 		}
 	}
 }

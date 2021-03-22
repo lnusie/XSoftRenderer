@@ -90,11 +90,14 @@ void Graphics::DrawTriangle(Vec3f v1, Vec3f v2, Vec3f v3, TGAImage &image, TGACo
 	}
 }
 
-void Graphics::DrawTriangleWithTexture(Vec3f * pts, Vec2f * uvs, TGAImage & image, TGAColor color, float * zBuffer)
+void Graphics::DrawTriangleWithTexture(Vec3f * pts, Vec2f * uvs, TGAImage & image, float * zBuffer, TGAImage *texture)
 {
 	int width = image.get_width();
 	int height = image.get_height();
-	Vec3f v1, v2, v3 = pts[0], pts[1], pts[2];
+	Vec3f v1 = pts[0];
+	Vec3f v2 = pts[1];
+	Vec3f v3 = pts[2];
+
 	int xMin = min(v1.x, v2.x, v3.x);
 	xMin = std::max(0, xMin);
 	int xMax = max(v1.x, v2.x, v3.x);
@@ -116,6 +119,15 @@ void Graphics::DrawTriangleWithTexture(Vec3f * pts, Vec2f * uvs, TGAImage & imag
 			float zValue = v1.z * bcPoint.x + v2.z * bcPoint.y + v3.z * bcPoint.z;
 			if (zBuffer[idx] > zValue) continue;
 			zBuffer[idx] = zValue;
+			float u = uvs[0].u * bcPoint.x + uvs[1].u * bcPoint.y + uvs[2].u * bcPoint.z;
+			float v = uvs[0].v * bcPoint.x + uvs[1].v * bcPoint.y + uvs[2].v * bcPoint.z;
+			v = 1 - v;
+			//float u = (uvs[0].u + uvs[1].u + uvs[2].u) / 3;
+			//float v = (uvs[0].v + uvs[1].v + uvs[2].v) / 3;
+
+			TGAColor color = texture->get(u * texture->get_width(), v * texture->get_height());
+			//TGAColor color = TGAColor(rand() % 255 * v, rand() % 255 * v, rand() % 255 * v, 255);
+			//TGAColor color = TGAColor(rand() % 255 * u, rand() % 255 * u, rand() % 255 * u, 255);
 			image.set(i, j, color);
 		}
 	}
