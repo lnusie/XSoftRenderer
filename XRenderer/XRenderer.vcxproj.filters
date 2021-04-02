@@ -15,51 +15,63 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Math.h">
+    <ClInclude Include="graphics.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Test.h">
+    <ClInclude Include="graphics_device.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics.h">
+    <ClInclude Include="math.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="GeometryUtility.h">
+    <ClInclude Include="model.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Model.h">
+    <ClInclude Include="test.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Geometry.h">
+    <ClInclude Include="geometry.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="TGAImage.h">
+    <ClInclude Include="geometry_utility.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="tgaimage.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="x_gl.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="XRenderer.cpp">
+    <ClCompile Include="test.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Math.cpp">
+    <ClCompile Include="x_renderer.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Test.cpp">
+    <ClCompile Include="geometry.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Graphics.cpp">
+    <ClCompile Include="geometry_utility.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="GeometryUtility.cpp">
+    <ClCompile Include="graphics.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Model.cpp">
+    <ClCompile Include="graphics_device.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Geometry.cpp">
+    <ClCompile Include="math.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="TGAImage.cpp">
+    <ClCompile Include="model.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="tgaimage.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="x_gl.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

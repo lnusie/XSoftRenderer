@@ -1,6 +1,6 @@
-#include "Graphics.h"
+#include "graphics.h"
 #include "tgaimage.h"
-#include "GeometryUtility.h"
+#include "geometry_utility.h"
 #include <cmath>
 #include <algorithm>
 

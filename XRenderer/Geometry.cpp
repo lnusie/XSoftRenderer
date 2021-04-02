@@ -1,5 +1,4 @@
-#include "Geometry.h"
-
+#include "geometry.h"
 #include <vector>
 #include <cassert>
 #include <cmath>

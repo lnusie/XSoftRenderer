@@ -20,7 +20,7 @@ template <class t> struct Vec2 {
 	inline Vec2<t> operator *(float f)          const { return Vec2<t>(u*f, v*f); }
 	template <class > friend std::ostream& operator<<(std::ostream& s, Vec2<t>& v);
 	void Set(t a, t b) { x = a; y = b; }
-
+	inline t operator[](const int i) { return raw[i] };
 };
 
 template <class t> struct Vec3 {
@@ -46,6 +46,7 @@ template <class t> struct Vec3 {
 	template <class > friend std::ostream& operator<<(std::ostream& s, Vec3<t>& v);
 	//这里注意不能定义为常函数
 	inline void operator =(const Vec2<t> &v) { x = v.x; y = v.y; };
+	inline t operator[](const int i) { return raw[i] };
 };
 
 typedef Vec2<float> Vec2f;
