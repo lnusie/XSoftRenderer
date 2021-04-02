@@ -151,29 +151,22 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\tinyrenderer-master\tinyrenderer-master\tgaimage.h" />
-    <ClInclude Include="geometry.h" />
+    <ClInclude Include="Geometry.h" />
     <ClInclude Include="GeometryUtility.h" />
     <ClInclude Include="Graphics.h" />
     <ClInclude Include="Math.h" />
-    <ClInclude Include="model.h" />
-    <ClInclude Include="pch.h" />
+    <ClInclude Include="Model.h" />
     <ClInclude Include="Test.h" />
-    <ClInclude Include="tgaimage.h" />
+    <ClInclude Include="TGAImage.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Geometry.cpp" />
     <ClCompile Include="GeometryUtility.cpp" />
     <ClCompile Include="Graphics.cpp" />
     <ClCompile Include="Math.cpp" />
-    <ClCompile Include="model.cpp" />
-    <ClCompile Include="pch.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
-    </ClCompile>
+    <ClCompile Include="Model.cpp" />
     <ClCompile Include="Test.cpp" />
-    <ClCompile Include="tgaimage.cpp" />
+    <ClCompile Include="TGAImage.cpp" />
     <ClCompile Include="XRenderer.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

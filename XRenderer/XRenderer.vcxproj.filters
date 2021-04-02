@@ -15,38 +15,29 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="pch.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\tinyrenderer-master\tinyrenderer-master\tgaimage.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="Math.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="Test.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="tgaimage.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="Graphics.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="model.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="geometry.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="GeometryUtility.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="Model.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Geometry.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="TGAImage.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="pch.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="XRenderer.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
@@ -56,16 +47,19 @@
     <ClCompile Include="Test.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="tgaimage.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="Graphics.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="model.cpp">
+    <ClCompile Include="GeometryUtility.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="GeometryUtility.cpp">
+    <ClCompile Include="Model.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Geometry.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="TGAImage.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
