@@ -1,8 +1,8 @@
 #include "graphics.h"
 #include "tgaimage.h"
-#include "geometry_utility.h"
 #include <cmath>
 #include <algorithm>
+#include "math.h"
 
 void Graphics::DrawLine(int x0, int y0, int x1, int y1, TGAImage &image, TGAColor color)
 {
@@ -36,6 +36,10 @@ void Graphics::DrawLine(int x0, int y0, int x1, int y1, TGAImage &image, TGAColo
 	}
 }
 
+IShader::~IShader()
+{
+}
+
 int min(int a, int b, int c)
 {
 	auto t = std::min(a, b);
@@ -51,7 +55,7 @@ int max(int a, int b, int c)
 Vec3f barycentric(Vec2i pts[], Vec2i P) {
 	Vec3f v1 = Vec3f(pts[2].x - pts[0].x, pts[1].x - pts[0].x, pts[0].x - P.x);
 	Vec3f v2 = Vec3f(pts[2].y - pts[0].y, pts[1].y - pts[0].y, pts[0].y - P.y);
-	Vec3f u = v1 ^ v2;
+	Vec3f u = cross(v1,v2);
 
 	/* `pts` and `P` has integer value as coordinates
 	   so `abs(u[2])` < 1 means `u[2]` is 0, that means
@@ -119,8 +123,8 @@ void Graphics::DrawTriangleWithTexture(Vec3f * pts, Vec2f * uvs, TGAImage & imag
 			float zValue = v1.z * bcPoint.x + v2.z * bcPoint.y + v3.z * bcPoint.z;
 			if (zBuffer[idx] > zValue) continue;
 			zBuffer[idx] = zValue;
-			float u = uvs[0].u * bcPoint.x + uvs[1].u * bcPoint.y + uvs[2].u * bcPoint.z;
-			float v = uvs[0].v * bcPoint.x + uvs[1].v * bcPoint.y + uvs[2].v * bcPoint.z;
+			float u = uvs[0].x * bcPoint.x + uvs[1].x * bcPoint.y + uvs[2].x * bcPoint.z;
+			float v = uvs[0].y * bcPoint.x + uvs[1].y * bcPoint.y + uvs[2].y * bcPoint.z;
 			v = 1 - v;
 			//float u = (uvs[0].u + uvs[1].u + uvs[2].u) / 3;
 			//float v = (uvs[0].v + uvs[1].v + uvs[2].v) / 3;
@@ -133,3 +137,58 @@ void Graphics::DrawTriangleWithTexture(Vec3f * pts, Vec2f * uvs, TGAImage & imag
 	}
 }
 
+//center_pos ：观察坐标 原点位置
+void Graphics::LookAtLH(Vec3f eye_pos, Vec3f center_pos, Vec3f up)
+{
+	Matrix matrix = Matrix::identity();
+	Vec3f& z = (center_pos - eye_pos).normalize();
+	Vec3f& x = cross(z, up).normalize();
+	Vec3f& y = cross(x, z).normalize();
+	float eye_x = -(x * eye_pos);
+	float eye_y = -(y * eye_pos);
+	float eye_z = -(z * eye_pos);
+
+	for (int i = 0; i < 3; i++)
+	{
+		matrix[i][0] = x[i];
+		matrix[i][1] = y[i];
+		matrix[i][2] = z[i];
+	}
+	matrix[3][0] = eye_x;
+	matrix[3][1] = eye_y;
+	matrix[3][2] = eye_z;
+	world2view_matrix = matrix;
+}
+
+float rad2angle = 57.3;
+float angle2rad = 0.01745;
+
+void Graphics::Projection(float fov_y, float aspect, float z_near, float z_far)
+{
+	Matrix matrix = Matrix();
+	float cot = 1 / std::tan(fov_y * angle2rad * 0.5f);
+	matrix[0][0] = cot / aspect;
+	matrix[1][1] = cot;
+	matrix[2][2] = z_far / (z_far - z_near);
+	matrix[2][3] = 1;
+	matrix[3][2] = z_near * z_far / (z_near - z_far);
+	projection_matrix = matrix;
+}
+
+void Graphics::Viewport(Vec2i pos, Vec2i size, int depth = 255)
+{
+	Matrix m = Matrix::identity();
+	m[0][3] = pos.x + size.x / 2.f;
+	m[1][3] = pos.y + size.y / 2.f;
+	m[2][3] = depth / 2.f;
+
+	m[0][0] = size.x / 2.f;
+	m[1][1] = size.y / 2.f;
+	m[2][2] = depth / 2.f;
+	ndc2viewport_matrix = m;
+}
+
+
+void DrawTriangle(Vec4f * pts, IShader & shader, TGAImage & image, TGAImage & zbuffer)
+{
+}

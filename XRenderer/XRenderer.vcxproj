@@ -152,9 +152,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="geometry.h" />
-    <ClInclude Include="geometry_utility.h" />
     <ClInclude Include="graphics.h" />
-    <ClInclude Include="graphics_device.h" />
     <ClInclude Include="math.h" />
     <ClInclude Include="model.h" />
     <ClInclude Include="test.h" />
@@ -163,9 +161,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="geometry.cpp" />
-    <ClCompile Include="geometry_utility.cpp" />
     <ClCompile Include="graphics.cpp" />
-    <ClCompile Include="graphics_device.cpp" />
     <ClCompile Include="math.cpp" />
     <ClCompile Include="model.cpp" />
     <ClCompile Include="test.cpp" />

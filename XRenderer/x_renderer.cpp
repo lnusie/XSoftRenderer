@@ -54,9 +54,9 @@ int main(int argc, char** argv)
 	TGAImage image(width, height, TGAImage::RGB);
 	
 	//DrawWireframe(model, image);
-	//DrawFlatTriangle(model, image);
+	DrawFlatTriangle(model, image); 
 	//DrawModelWithSimpleLight(model, image);
-	DrawModelWithTexture(model, image, texture);
+	//DrawModelWithTexture(model, image, texture);
 	image.flip_vertically(); // i want to have the origin at the left bottom corner of the image
 	image.write_tga_file("output.tga");
 	delete model;
@@ -129,7 +129,7 @@ void DrawModelWithSimpleLight(Model *model, TGAImage &image)
 		}
 		auto a = world_coords[1] - world_coords[0];
 		auto b = world_coords[2] - world_coords[0];
-		auto normal = (a ^ b).normalize();
+		Vec3f& normal = cross(a,b).normalize();
 		auto intensity = normal * lightDir;
 		if (intensity > 0)
 		{
@@ -160,7 +160,7 @@ void DrawModelWithTexture(Model *model, TGAImage &image, TGAImage *texture)
 		}
 		auto a = world_coords[1] - world_coords[0];
 		auto b = world_coords[2] - world_coords[0];
-		auto normal = (a ^ b).normalize();
+		Vec3f& normal = cross(a, b).normalize();
 		auto intensity = normal * lightDir;
 		if (intensity > 0)
 		{

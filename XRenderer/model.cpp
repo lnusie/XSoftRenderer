@@ -22,7 +22,7 @@ Model::Model(const char *filename) : verts_(), faces_(), uvs_(), uvidxs_(){
 			// iss >> trash ：从 iss中取出当前的string
             iss >> trash; //弹出"v"
             Vec3f v;
-            for (int i=0;i<3;i++) iss >> v.raw[i];
+            for (int i=0;i<3;i++) iss >> v[i];
             verts_.push_back(v);
         } 
 		else if (!line.compare(0, 2, "f ")) //f 24/1/24 25/2/25 26/3/26 , 最开始的数字是顶点序号， 中间数字是纹理坐标序号 
@@ -45,7 +45,7 @@ Model::Model(const char *filename) : verts_(), faces_(), uvs_(), uvidxs_(){
 			Vec2f uv;
 			iss >> trash;
 			iss >> trash;
-			for (int i = 0; i < 2; i++) iss >> uv.raw[i];
+			for (int i = 0; i < 2; i++) iss >> uv[i];
 			uvs_.push_back(uv);
 		}
 		

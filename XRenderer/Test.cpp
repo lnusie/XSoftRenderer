@@ -2,7 +2,6 @@
 #include <iostream>
 #include <string>
 //#include "geometry.h"
-#include "GeometryUtility.h"
 
 void Test::DOTest(void)
 {/*
@@ -21,20 +20,6 @@ void Test::DOTest(void)
 		std::cout << "false";
 	}*/
 	
-	Vec3i a(0, 1, 0);
-	Vec3i b(-1, 0, 0);
-	Vec3i c(1, 0, 0);
-	Vec3i p(0, -1, 0);
-
-	if (GeometryUtility::IsInTriangle(a, b, c, p))
-	{
-		std::cout << "true";
-	}
-	else
-	{
-		std::cout << "false";
-	}
-	//std::cout << "IsInTriangle : " << GeometryUtility::IsInTriangle(a, b, c, p);
 
 }
 

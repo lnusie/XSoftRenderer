@@ -18,9 +18,6 @@
     <ClInclude Include="graphics.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="graphics_device.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="math.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -31,9 +28,6 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="geometry.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="geometry_utility.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="tgaimage.h">
@@ -53,13 +47,7 @@
     <ClCompile Include="geometry.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="geometry_utility.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="graphics.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="graphics_device.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="math.cpp">
