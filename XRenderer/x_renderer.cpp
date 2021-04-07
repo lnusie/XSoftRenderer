@@ -22,11 +22,37 @@ int length(T& arr)
 
 Model *model = NULL;
 TGAImage *texture = NULL;
+IShader &shader;
 
 void DrawFlatTriangle(Model *model, TGAImage &image);
 void DrawWireframe(Model *model, TGAImage &image);
 void DrawModelWithSimpleLight(Model *model, TGAImage &image);
 void DrawModelWithTexture(Model *model, TGAImage &image, TGAImage *texture);
+void DrawModelWithShader(Model * model, IShader &shader, TGAImage &texture, TGAImage &zbuffer);
+
+struct TestShader : IShader
+{
+	Model *model_;
+	Matrix object2world_matrix;
+	Matrix projection_matrix;
+	Matrix world2view_matrix;
+	Matrix ndc2viewport_matrix;
+
+	virtual Vec4f vertex(int iface, int nthvert) 
+	{
+		std::vector<int> face = model_->face(iface);
+		int vertex_idx = face[nthvert];
+		Vec4f vertex = model_->vert[vertex_idx];
+		Vec3f uv = model_->uv[vertex_idx];
+		Vec3f normal = model_->normal[vertex_idx];
+		return ndc2viewport_matrix * projection_matrix * world2view_matrix * object2world_matrix * vertex;
+	}
+	virtual bool fragment(Vec3f bar, TGAColor & color)
+	{
+		return false;
+	}
+};
+
 
 int main(int argc, char** argv)
 {
@@ -52,11 +78,13 @@ int main(int argc, char** argv)
 	}
 
 	TGAImage image(width, height, TGAImage::RGB);
-	
+	TGAImage zbuffer(width, height, TGAImage::GRAYSCALE);
 	//DrawWireframe(model, image);
-	DrawFlatTriangle(model, image); 
+	//DrawFlatTriangle(model, image); 
 	//DrawModelWithSimpleLight(model, image);
 	//DrawModelWithTexture(model, image, texture);
+
+	DrawModelWithShader(model, shader, image, zbuffer);
 	image.flip_vertically(); // i want to have the origin at the left bottom corner of the image
 	image.write_tga_file("output.tga");
 	delete model;
@@ -167,5 +195,21 @@ void DrawModelWithTexture(Model *model, TGAImage &image, TGAImage *texture)
 			//TGAColor color = TGAColor(255 * intensity, 255 * intensity, 255 * intensity, 255);
 			Graphics::DrawTriangleWithTexture(screen_coords, uvs, image, zBuffer, texture);
 		}
+	}
+}
+
+void DrawModelWithShader(Model * model, IShader &shader, TGAImage &image, TGAImage &zbuffer)
+{
+
+	Vec3f lightDir = Vec3f(0, 0, 1);
+	lightDir.normalize();
+	for (int i = 0; i < model->nfaces(); i++) 
+	{
+		Vec4f screen_coords[3];
+		for (int j = 0; j < 3; j++)
+		{
+			screen_coords[j] = shader.vertex(i, j);
+		}
+		Graphics::DrawTriangle(screen_coords, shader, image, zbuffer);
 	}
 }

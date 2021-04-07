@@ -48,6 +48,14 @@ Model::Model(const char *filename) : verts_(), faces_(), uvs_(), uvidxs_(){
 			for (int i = 0; i < 2; i++) iss >> uv[i];
 			uvs_.push_back(uv);
 		}
+		else if (!line.compare(0, 2, "vn")) // normal
+		{
+			Vec3f normal;
+			iss >> trash;
+			iss >> trash;
+			for (int i = 0; i < 3; i++) iss >> normal[i];
+			normals_.push_back(normal);
+		}
 		
     }
     //std::cerr << "# v# " << verts_.size() << " f# "  << faces_.size() << std::endl;
@@ -75,6 +83,11 @@ std::vector<int> Model::face(int idx) {
 
 Vec3f Model::vert(int i) {
     return verts_[i];
+}
+
+Vec3f Model::normal(int i)
+{
+	return normals_[i];
 }
 
 Vec2f Model::uv(int i) {

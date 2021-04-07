@@ -53,15 +53,15 @@ int max(int a, int b, int c)
 }
 
 Vec3f barycentric(Vec2i pts[], Vec2i P) {
-	Vec3f v1 = Vec3f(pts[2].x - pts[0].x, pts[1].x - pts[0].x, pts[0].x - P.x);
-	Vec3f v2 = Vec3f(pts[2].y - pts[0].y, pts[1].y - pts[0].y, pts[0].y - P.y);
+	Vec3f v1 = Vec3f(pts[2][0] - pts[0][0], pts[1][0] - pts[0][0], pts[0][0] - P[0]);
+	Vec3f v2 = Vec3f(pts[2][1] - pts[0][1], pts[1][1] - pts[0][1], pts[0][1] - P[1]);
 	Vec3f u = cross(v1,v2);
 
 	/* `pts` and `P` has integer value as coordinates
 	   so `abs(u[2])` < 1 means `u[2]` is 0, that means
 	   triangle is degenerate, in this case return something with negative coordinates */
-	if (std::abs(u.z) < 1) return Vec3f(-1, 1, 1);
-	return Vec3f(1.f - (u.x + u.y) / u.z, u.y / u.z, u.x / u.z);
+	if (std::abs(u[2]) < 1) return Vec3f(-1, 1, 1);
+	return Vec3f(1.f - (u[0] + u[1]) / u[2], u[1] / u[2], u[0] / u[2]);
 }
 
 void Graphics::DrawTriangle(Vec3f v1, Vec3f v2, Vec3f v3, TGAImage &image, TGAColor color, float *zBuffer)
@@ -69,24 +69,24 @@ void Graphics::DrawTriangle(Vec3f v1, Vec3f v2, Vec3f v3, TGAImage &image, TGACo
 	int width = image.get_width();
 	int height = image.get_height();
 
-	int xMin = min(v1.x, v2.x, v3.x);
+	int xMin = min(v1[0], v2[0], v3[0]);
 	xMin = std::max(0, xMin);
-	int xMax = max(v1.x, v2.x, v3.x);
+	int xMax = max(v1[0], v2[0], v3[0]);
 	xMax = std::min(width, xMax);
-	int yMin = min(v1.y, v2.y, v3.y);
+	int yMin = min(v1[1], v2[1], v3[1]);
 	yMin = std::max(0, yMin);
-	int yMax = max(v1.y, v2.y, v3.y);
+	int yMax = max(v1[1], v2[1], v3[1]);
 	yMax = std::min(height, yMax);
-	Vec2i verts[3] = {Vec2i(v1.x, v1.y),Vec2i(v2.x, v2.y),Vec2i(v3.x, v3.y)};
+	Vec2i verts[3] = {Vec2i(v1[0], v1[1]),Vec2i(v2[0], v2[1]),Vec2i(v3[0], v3[1])};
 	for (int i = xMin; i <= xMax; i++)
 	{
 		for (int j = yMin; j <= yMax; j++)
 		{
 			Vec2i p(i, j);
-			Vec3f bcPoint = barycentric(verts, p);
-			if (bcPoint.x < 0 || bcPoint.y < 0 || bcPoint.z < 0) continue;
+			Vec3f bc = barycentric(verts, p);
+			if (bc[0] < 0 || bc[1] < 0 || bc[2] < 0) continue;
 			int idx = i + j * width;
-			float zValue = v1.z * bcPoint.x + v2.z * bcPoint.y + v3.z * bcPoint.z;
+			float zValue = v1[2] * bc[0] + v2[2] * bc[1] + v3[2] * bc[2];
 			if (zBuffer[idx] > zValue) continue;
 			zBuffer[idx] = zValue;
 			image.set(i, j, color);
@@ -102,29 +102,29 @@ void Graphics::DrawTriangleWithTexture(Vec3f * pts, Vec2f * uvs, TGAImage & imag
 	Vec3f v2 = pts[1];
 	Vec3f v3 = pts[2];
 
-	int xMin = min(v1.x, v2.x, v3.x);
+	int xMin = min(v1[0], v2[0], v3[0]);
 	xMin = std::max(0, xMin);
-	int xMax = max(v1.x, v2.x, v3.x);
+	int xMax = max(v1[0], v2[0], v3[0]);
 	xMax = std::min(width, xMax);
-	int yMin = min(v1.y, v2.y, v3.y);
+	int yMin = min(v1[1], v2[1], v3[1]);
 	yMin = std::max(0, yMin);
-	int yMax = max(v1.y, v2.y, v3.y);
+	int yMax = max(v1[1], v2[1], v3[1]);
 	yMax = std::min(height, yMax);
 
-	Vec2i verts[3] = { Vec2i(v1.x, v1.y),Vec2i(v2.x, v2.y),Vec2i(v3.x, v3.y) };
+	Vec2i verts[3] = { Vec2i(v1[0], v1[1]),Vec2i(v2[0], v2[1]),Vec2i(v3[0], v3[1]) };
 	for (int i = xMin; i <= xMax; i++)
 	{
 		for (int j = yMin; j <= yMax; j++)
 		{
 			Vec2i p(i, j);
-			Vec3f bcPoint = barycentric(verts, p);
-			if (bcPoint.x < 0 || bcPoint.y < 0 || bcPoint.z < 0) continue;
+			Vec3f bc = barycentric(verts, p);
+			if (bc[0] < 0 || bc[1] < 0 || bc[2] < 0) continue;
 			int idx = i + j * width;
-			float zValue = v1.z * bcPoint.x + v2.z * bcPoint.y + v3.z * bcPoint.z;
+			float zValue = v1[2] * bc[0] + v2[2] * bc[1] + v3[2] * bc[2];
 			if (zBuffer[idx] > zValue) continue;
 			zBuffer[idx] = zValue;
-			float u = uvs[0].x * bcPoint.x + uvs[1].x * bcPoint.y + uvs[2].x * bcPoint.z;
-			float v = uvs[0].y * bcPoint.x + uvs[1].y * bcPoint.y + uvs[2].y * bcPoint.z;
+			float u = uvs[0][0] * bc[0] + uvs[1][0] * bc[1] + uvs[2][0] * bc[2];
+			float v = uvs[0][1] * bc[0] + uvs[1][1] * bc[1] + uvs[2][1] * bc[2];
 			v = 1 - v;
 			//float u = (uvs[0].u + uvs[1].u + uvs[2].u) / 3;
 			//float v = (uvs[0].v + uvs[1].v + uvs[2].v) / 3;
@@ -138,7 +138,7 @@ void Graphics::DrawTriangleWithTexture(Vec3f * pts, Vec2f * uvs, TGAImage & imag
 }
 
 //center_pos ：观察坐标 原点位置
-void Graphics::LookAtLH(Vec3f eye_pos, Vec3f center_pos, Vec3f up)
+Matrix Graphics::LookAtLH(Vec3f eye_pos, Vec3f center_pos, Vec3f up)
 {
 	Matrix matrix = Matrix::identity();
 	Vec3f& z = (center_pos - eye_pos).normalize();
@@ -157,13 +157,13 @@ void Graphics::LookAtLH(Vec3f eye_pos, Vec3f center_pos, Vec3f up)
 	matrix[3][0] = eye_x;
 	matrix[3][1] = eye_y;
 	matrix[3][2] = eye_z;
-	world2view_matrix = matrix;
+	return matrix;
 }
 
 float rad2angle = 57.3;
 float angle2rad = 0.01745;
 
-void Graphics::Projection(float fov_y, float aspect, float z_near, float z_far)
+Matrix Graphics::Projection(float fov_y, float aspect, float z_near, float z_far)
 {
 	Matrix matrix = Matrix();
 	float cot = 1 / std::tan(fov_y * angle2rad * 0.5f);
@@ -172,23 +172,69 @@ void Graphics::Projection(float fov_y, float aspect, float z_near, float z_far)
 	matrix[2][2] = z_far / (z_far - z_near);
 	matrix[2][3] = 1;
 	matrix[3][2] = z_near * z_far / (z_near - z_far);
-	projection_matrix = matrix;
+	return matrix;
 }
 
-void Graphics::Viewport(Vec2i pos, Vec2i size, int depth = 255)
+Matrix Graphics::Viewport(Vec2i pos, Vec2i size, int depth = 255)
 {
 	Matrix m = Matrix::identity();
-	m[0][3] = pos.x + size.x / 2.f;
-	m[1][3] = pos.y + size.y / 2.f;
+	m[0][3] = pos[0] + size[0] / 2.f;
+	m[1][3] = pos[1] + size[1] / 2.f;
 	m[2][3] = depth / 2.f;
 
-	m[0][0] = size.x / 2.f;
-	m[1][1] = size.y / 2.f;
+	m[0][0] = size[0] / 2.f;
+	m[1][1] = size[1] / 2.f;
 	m[2][2] = depth / 2.f;
-	ndc2viewport_matrix = m;
+	return m;
 }
 
-
-void DrawTriangle(Vec4f * pts, IShader & shader, TGAImage & image, TGAImage & zbuffer)
+Matrix Graphics::Object2World(Vec3f pos, Vec3f x, Vec3f y, Vec3f z)
 {
+	return Matrix::identity();
+}
+
+void Graphics::DrawTriangle(Vec4f * pts, IShader & shader, TGAImage & image, TGAImage & zbuffer)
+{
+	int width = image.get_width();
+	int height = image.get_height();
+	Vec4f v1 = pts[0];
+	Vec4f v2 = pts[1];
+	Vec4f v3 = pts[2];
+
+	int xMin = min(v1[0], v2[0], v3[0]);
+	xMin = std::max(0, xMin);
+	int xMax = max(v1[0], v2[0], v3[0]);
+	xMax = std::min(width, xMax);
+	int yMin = min(v1[1], v2[1], v3[1]);
+	yMin = std::max(0, yMin);
+	int yMax = max(v1[1], v2[1], v3[1]);
+	yMax = std::min(height, yMax);
+
+	Vec2i verts[3] = { Vec2i(v1[0], v1[1]),Vec2i(v2[0], v2[1]),Vec2i(v3[0], v3[1]) };
+	for (int i = xMin; i <= xMax; i++)
+	{
+		for (int j = yMin; j <= yMax; j++)
+		{
+			Vec2i p(i, j);
+			Vec3f bc = barycentric(verts, p);
+			if (bc[0] < 0 || bc[1] < 0 || bc[2] < 0) continue;
+			float w = v1[2] * bc.x + v2[2]
+
+			int idx = i + j * width;
+			float z_value = v1[2] * bc[0] + v2[2] * bc[1] + v3[2] * bc[2];
+			if (zbuffer[idx] > z_value) continue;
+			zbuffer[idx] = z_value;
+			float u = uvs[0][0] * bc[0] + uvs[1][0] * bc[1] + uvs[2][0] * bc[2];
+			float v = uvs[0][1] * bc[0] + uvs[1][1] * bc[1] + uvs[2][1] * bc[2];
+			v = 1 - v;
+			//float u = (uvs[0].u + uvs[1].u + uvs[2].u) / 3;
+			//float v = (uvs[0].v + uvs[1].v + uvs[2].v) / 3;
+
+			TGAColor color = texture->get(u * texture->get_width(), v * texture->get_height());
+			//TGAColor color = TGAColor(rand() % 255 * v, rand() % 255 * v, rand() % 255 * v, 255);
+			//TGAColor color = TGAColor(rand() % 255 * u, rand() % 255 * u, rand() % 255 * u, 255);
+			image.set(i, j, color);
+		}
+	}
+
 }
