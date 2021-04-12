@@ -23,15 +23,16 @@ class Graphics
 	Matrix world2view_matrix;
 	Matrix ndc2viewport_matrix;*/
 
-	Matrix LookAtLH(Vec3f eye_pos, Vec3f target_pos, Vec3f up);
-	Matrix Projection(float fov_y, float aspect, float z_near, float z_far);
-	Matrix Viewport(Vec2i pos, Vec2i size, int depth);
-	Matrix Object2World(Vec3f pos, Vec3f x, Vec3f y, Vec3f z);
+	
 
 public:
+	static Matrix LookAtLH(Vec3f eye_pos, Vec3f target_pos, Vec3f up);
+	static Matrix Projection(float fov_y, float aspect, float z_near, float z_far);
+	static Matrix Viewport(Vec2i pos, Vec2i size, int depth);
+	static Matrix Object2World(Vec3f pos, Vec3f x, Vec3f y, Vec3f z);
 	static void DrawLine(int x0, int y0, int x1, int y1, TGAImage &image, TGAColor color);
 	static void DrawTriangle(Vec3f v1, Vec3f v2, Vec3f v3, TGAImage &image, TGAColor color, float *zBuffer);
 	static void DrawTriangleWithTexture(Vec3f * pts, Vec2f * uvs, TGAImage & image, float * zBuffer, TGAImage *texture);
-	static void DrawTriangle(Vec4f * pts, IShader & shader, TGAImage & image, TGAImage & zbuffer);
+	static void DrawTriangle(Vec4f * pts, IShader & shader, TGAImage & image, TGAImage & zbuffer, Matrix &viewport_matrix);
 };
 

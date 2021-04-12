@@ -22,30 +22,34 @@ int length(T& arr)
 
 Model *model = NULL;
 TGAImage *texture = NULL;
-IShader &shader;
 
 void DrawFlatTriangle(Model *model, TGAImage &image);
 void DrawWireframe(Model *model, TGAImage &image);
 void DrawModelWithSimpleLight(Model *model, TGAImage &image);
 void DrawModelWithTexture(Model *model, TGAImage &image, TGAImage *texture);
-void DrawModelWithShader(Model * model, IShader &shader, TGAImage &texture, TGAImage &zbuffer);
+void DrawModelWithShader(Model * model, IShader &shader, TGAImage &image, TGAImage &zbuffer, Matrix &viewport_matrix);
 
 struct TestShader : IShader
 {
+public :
 	Model *model_;
 	Matrix object2world_matrix;
 	Matrix projection_matrix;
 	Matrix world2view_matrix;
-	Matrix ndc2viewport_matrix;
-
+	
 	virtual Vec4f vertex(int iface, int nthvert) 
 	{
 		std::vector<int> face = model_->face(iface);
 		int vertex_idx = face[nthvert];
-		Vec4f vertex = model_->vert[vertex_idx];
-		Vec3f uv = model_->uv[vertex_idx];
-		Vec3f normal = model_->normal[vertex_idx];
-		return ndc2viewport_matrix * projection_matrix * world2view_matrix * object2world_matrix * vertex;
+		Vec3f vertex = model_->vert(vertex_idx);
+		Vec4f v4 = Vec4f(vertex.x, vertex.y, vertex.z, 1);
+		Vec2f uv = model_->uv(vertex_idx);
+		Vec3f normal = model_->normal(vertex_idx);
+		//return projection_matrix * world2view_matrix * object2world_matrix * v4;
+		Vec4f world_pos = object2world_matrix * v4;
+		Vec4f view_pos = world2view_matrix * world_pos;
+		Vec4f projection_pos = projection_matrix * view_pos;
+		return projection_pos;
 	}
 	virtual bool fragment(Vec3f bar, TGAColor & color)
 	{
@@ -83,8 +87,13 @@ int main(int argc, char** argv)
 	//DrawFlatTriangle(model, image); 
 	//DrawModelWithSimpleLight(model, image);
 	//DrawModelWithTexture(model, image, texture);
-
-	DrawModelWithShader(model, shader, image, zbuffer);
+	TestShader shader = TestShader();
+	shader.model_ = model;
+	shader.object2world_matrix = Graphics::Object2World(Vec3f(0, 0, 0), Vec3f(1, 0, 0), Vec3f(0, 1, 0), Vec3f(0, 0, 1));
+	shader.world2view_matrix = Graphics::LookAtLH(Vec3f(0, 0, -10), Vec3f(0, 0, 0), Vec3f(0, 1, 0));
+	shader.projection_matrix = Graphics::Projection(60, 1, 1, 100);
+	Matrix viewport_matrix = Graphics::Viewport(Vec2i(0, 0), Vec2i(800, 800), 255);
+	DrawModelWithShader(model, shader, image, zbuffer, viewport_matrix);
 	image.flip_vertically(); // i want to have the origin at the left bottom corner of the image
 	image.write_tga_file("output.tga");
 	delete model;
@@ -198,9 +207,8 @@ void DrawModelWithTexture(Model *model, TGAImage &image, TGAImage *texture)
 	}
 }
 
-void DrawModelWithShader(Model * model, IShader &shader, TGAImage &image, TGAImage &zbuffer)
+void DrawModelWithShader(Model * model, IShader &shader, TGAImage &image, TGAImage &zbuffer, Matrix &viewport_matrix)
 {
-
 	Vec3f lightDir = Vec3f(0, 0, 1);
 	lightDir.normalize();
 	for (int i = 0; i < model->nfaces(); i++) 
@@ -210,6 +218,6 @@ void DrawModelWithShader(Model * model, IShader &shader, TGAImage &image, TGAIma
 		{
 			screen_coords[j] = shader.vertex(i, j);
 		}
-		Graphics::DrawTriangle(screen_coords, shader, image, zbuffer);
+		Graphics::DrawTriangle(screen_coords, shader, image, zbuffer, viewport_matrix);
 	}
 }

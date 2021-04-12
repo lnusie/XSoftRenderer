@@ -42,6 +42,21 @@ template <typename T> struct vec<3, T> {
 	T x, y, z;
 };
 
+template <typename T> struct vec<4, T> {
+	vec() : x(T()), y(T()), z(T()) , w(T()) {}
+	vec(T X, T Y, T Z, T W) : x(X), y(Y), z(Z) , w(W){}
+	template <class U> vec<4, T>(const vec<4, U> &v);
+	T& operator[](const size_t i) { assert(i < 4); return i <= 0 ? x :  (i <= 1 ? y : (i <= 2 ? z : w)); }
+	const T& operator[](const size_t i) const { assert(i < 4); return i <= 0 ? x : (i <= 1 ? y : (i <= 2 ? z : w));}
+	float norm() { return std::sqrt(x*x + y * y + z * z); }
+	vec<4, T>& normalize(T l = 1) {
+		T o = *this->w;
+		*this = (*this)*(l / norm()); 
+		*this->w = o;
+		return *this; }
+	T x, y, z, w;
+};
+
 /////////////////////////////////////////////////////////////////////////////////
 
 template<size_t DIM, typename T> T operator*(const vec<DIM, T>& lhs, const vec<DIM, T>& rhs) {

@@ -154,9 +154,10 @@ Matrix Graphics::LookAtLH(Vec3f eye_pos, Vec3f center_pos, Vec3f up)
 		matrix[i][1] = y[i];
 		matrix[i][2] = z[i];
 	}
-	matrix[3][0] = eye_x;
-	matrix[3][1] = eye_y;
-	matrix[3][2] = eye_z;
+	matrix[0][3] = eye_x;
+	matrix[1][3] = eye_y;
+	matrix[2][3] = eye_z;
+	matrix[3][3] = 1;
 	return matrix;
 }
 
@@ -169,15 +170,15 @@ Matrix Graphics::Projection(float fov_y, float aspect, float z_near, float z_far
 	float cot = 1 / std::tan(fov_y * angle2rad * 0.5f);
 	matrix[0][0] = cot / aspect;
 	matrix[1][1] = cot;
-	matrix[2][2] = z_far / (z_far - z_near);
-	matrix[2][3] = 1;
-	matrix[3][2] = z_near * z_far / (z_near - z_far);
+	matrix[2][2] = -(z_far + z_near) / (z_far - z_near);
+	matrix[2][3] = -z_near * z_far / (z_far - z_near);
+	matrix[3][2] = 1;
 	return matrix;
 }
 
 Matrix Graphics::Viewport(Vec2i pos, Vec2i size, int depth = 255)
 {
-	Matrix m = Matrix::identity();
+	/*Matrix m = Matrix::identity();
 	m[0][3] = pos[0] + size[0] / 2.f;
 	m[1][3] = pos[1] + size[1] / 2.f;
 	m[2][3] = depth / 2.f;
@@ -185,21 +186,44 @@ Matrix Graphics::Viewport(Vec2i pos, Vec2i size, int depth = 255)
 	m[0][0] = size[0] / 2.f;
 	m[1][1] = size[1] / 2.f;
 	m[2][2] = depth / 2.f;
+	return m;*/
+	Matrix m = Matrix::identity();
+	m[0][3] = pos[0] + size[0] / 2.f;
+	m[1][3] = pos[1] + size[1] / 2.f;
+	m[2][3] = 0;
+
+	m[0][0] = size[0] / 2.f;
+	m[1][1] = size[1] / 2.f;
+	m[2][2] = depth / 2.f;
 	return m;
 }
 
-Matrix Graphics::Object2World(Vec3f pos, Vec3f x, Vec3f y, Vec3f z)
+Matrix Graphics::Object2World(Vec3f o, Vec3f x, Vec3f y, Vec3f z)
 {
-	return Matrix::identity();
+	Matrix m = Matrix::identity();
+	for (int i = 0; i <= 2; i++)
+	{
+		m[i][0] = x[i];
+		m[i][1] = y[i];
+		m[i][2] = z[i];
+		m[i][3] = o[i];
+	}
+	return m;
 }
 
-void Graphics::DrawTriangle(Vec4f * pts, IShader & shader, TGAImage & image, TGAImage & zbuffer)
+void Graphics::DrawTriangle(Vec4f * pts, IShader & shader, TGAImage & image, TGAImage & zbuffer, Matrix &viewport_matrix)
 {
 	int width = image.get_width();
 	int height = image.get_height();
-	Vec4f v1 = pts[0];
-	Vec4f v2 = pts[1];
-	Vec4f v3 = pts[2];
+	//齐次除法：转换到NDC空间下
+	Vec4f v1 = pts[0] / pts[0].w;
+	Vec4f v2 = pts[1] / pts[0].w;
+	Vec4f v3 = pts[2] / pts[0].w;
+
+	//转到屏幕空间
+	v1 = viewport_matrix * v1;
+	v2 = viewport_matrix * v2;
+	v3 = viewport_matrix * v3;
 
 	int xMin = min(v1[0], v2[0], v3[0]);
 	xMin = std::max(0, xMin);
@@ -218,22 +242,24 @@ void Graphics::DrawTriangle(Vec4f * pts, IShader & shader, TGAImage & image, TGA
 			Vec2i p(i, j);
 			Vec3f bc = barycentric(verts, p);
 			if (bc[0] < 0 || bc[1] < 0 || bc[2] < 0) continue;
-			float w = v1[2] * bc.x + v2[2]
+			//float z = v1[2] * bc.x + v2[2] * bc.y + v3[2] * bc.z;
+			float w = v1[3] * bc.x + v2[3] * bc.y + v3[3] * bc.z;
+			std::cout << "w : " << w << std::endl;
+			return;
 
-			int idx = i + j * width;
-			float z_value = v1[2] * bc[0] + v2[2] * bc[1] + v3[2] * bc[2];
-			if (zbuffer[idx] > z_value) continue;
-			zbuffer[idx] = z_value;
-			float u = uvs[0][0] * bc[0] + uvs[1][0] * bc[1] + uvs[2][0] * bc[2];
-			float v = uvs[0][1] * bc[0] + uvs[1][1] * bc[1] + uvs[2][1] * bc[2];
-			v = 1 - v;
-			//float u = (uvs[0].u + uvs[1].u + uvs[2].u) / 3;
-			//float v = (uvs[0].v + uvs[1].v + uvs[2].v) / 3;
+			//int idx = i + j * width;
+			//if (zbuffer[idx] > z_value) continue;
+			//zbuffer[idx] = z_value;
+			//float u = uvs[0][0] * bc[0] + uvs[1][0] * bc[1] + uvs[2][0] * bc[2];
+			//float v = uvs[0][1] * bc[0] + uvs[1][1] * bc[1] + uvs[2][1] * bc[2];
+			//v = 1 - v;
+			////float u = (uvs[0].u + uvs[1].u + uvs[2].u) / 3;
+			////float v = (uvs[0].v + uvs[1].v + uvs[2].v) / 3;
 
-			TGAColor color = texture->get(u * texture->get_width(), v * texture->get_height());
-			//TGAColor color = TGAColor(rand() % 255 * v, rand() % 255 * v, rand() % 255 * v, 255);
-			//TGAColor color = TGAColor(rand() % 255 * u, rand() % 255 * u, rand() % 255 * u, 255);
-			image.set(i, j, color);
+			//TGAColor color = texture->get(u * texture->get_width(), v * texture->get_height());
+			////TGAColor color = TGAColor(rand() % 255 * v, rand() % 255 * v, rand() % 255 * v, 255);
+			////TGAColor color = TGAColor(rand() % 255 * u, rand() % 255 * u, rand() % 255 * u, 255);
+			//image.set(i, j, color);
 		}
 	}
 
