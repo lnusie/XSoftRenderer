@@ -22,41 +22,45 @@ int length(T& arr)
 
 Model *model = NULL;
 TGAImage *texture = NULL;
+Matrix object2world_matrix;
+Matrix projection_matrix;
+Matrix world2view_matrix;
+Matrix viewport_matrix;
 
 void DrawFlatTriangle(Model *model, TGAImage &image);
 void DrawWireframe(Model *model, TGAImage &image);
 void DrawModelWithSimpleLight(Model *model, TGAImage &image);
 void DrawModelWithTexture(Model *model, TGAImage &image, TGAImage *texture);
-void DrawModelWithShader(Model * model, IShader &shader, TGAImage &image, TGAImage &zbuffer, Matrix &viewport_matrix);
+void DrawModelWithShader(Model * model, IShader &shader, TGAImage &image, TGAImage &zbuffer);
 
 struct TestShader : IShader
 {
-public :
-	Model *model_;
-	Matrix object2world_matrix;
-	Matrix projection_matrix;
-	Matrix world2view_matrix;
-	
 	virtual Vec4f vertex(int iface, int nthvert) 
 	{
-		std::vector<int> face = model_->face(iface);
+		std::vector<int> face = model->face(iface);
 		int vertex_idx = face[nthvert];
-		Vec3f vertex = model_->vert(vertex_idx);
+		Vec3f vertex = model->vert(vertex_idx);
 		Vec4f v4 = Vec4f(vertex.x, vertex.y, vertex.z, 1);
-		Vec2f uv = model_->uv(vertex_idx);
-		Vec3f normal = model_->normal(vertex_idx);
+
+		std::vector<int> uv_idxs = model->uvidx(iface);
+		int uv_idx = uv_idxs[nthvert];
+		uv[nthvert] = model->uv(uv_idx);
+
+		Vec3f normal = model->normal(vertex_idx);
+
 		//return projection_matrix * world2view_matrix * object2world_matrix * v4;
 		Vec4f world_pos = object2world_matrix * v4;
 		Vec4f view_pos = world2view_matrix * world_pos;
 		Vec4f projection_pos = projection_matrix * view_pos;
 		return projection_pos;
-	}
-	virtual bool fragment(Vec3f bar, TGAColor & color)
+	} 
+	 
+	virtual bool fragment(Vec3f bar, TGAColor & color, Vec2f uv)
 	{
-		return false;
+		color = TGAColor(255 * rand(), 255 * rand(), 255 * rand(), 255);
+		return true;
 	}
 };
-
 
 int main(int argc, char** argv)
 {
@@ -87,13 +91,17 @@ int main(int argc, char** argv)
 	//DrawFlatTriangle(model, image); 
 	//DrawModelWithSimpleLight(model, image);
 	//DrawModelWithTexture(model, image, texture);
-	TestShader shader = TestShader();
-	shader.model_ = model;
-	shader.object2world_matrix = Graphics::Object2World(Vec3f(0, 0, 0), Vec3f(1, 0, 0), Vec3f(0, 1, 0), Vec3f(0, 0, 1));
-	shader.world2view_matrix = Graphics::LookAtLH(Vec3f(0, 0, -10), Vec3f(0, 0, 0), Vec3f(0, 1, 0));
-	shader.projection_matrix = Graphics::Projection(60, 1, 1, 100);
-	Matrix viewport_matrix = Graphics::Viewport(Vec2i(0, 0), Vec2i(800, 800), 255);
-	DrawModelWithShader(model, shader, image, zbuffer, viewport_matrix);
+	object2world_matrix = Graphics::Object2World(Vec3f(0, 0, 0), Vec3f(1, 0, 0), Vec3f(0, 1, 0), Vec3f(0, 0, 1));
+	world2view_matrix = Graphics::LookAtLH(Vec3f(0, 0, -1), Vec3f(0, 0, 0), Vec3f(0, 1, 0));
+	projection_matrix = Graphics::Projection(120, 1, 1, 12);
+	viewport_matrix = Graphics::Viewport(Vec2i(0, 0), Vec2i(800, 800), 255);
+
+	//Vec4f v4 = Vec4f(0, 0, 0, 1);
+	//Vec4f world_pos = object2world_matrix * v4;
+	//Vec4f view_pos = world2view_matrix * world_pos;
+	//Vec4f projection_pos = projection_matrix * view_pos;
+	TestShader shader = TestShader(); 
+	DrawModelWithShader(model, shader, image, zbuffer);
 	image.flip_vertically(); // i want to have the origin at the left bottom corner of the image
 	image.write_tga_file("output.tga");
 	delete model;
@@ -207,17 +215,21 @@ void DrawModelWithTexture(Model *model, TGAImage &image, TGAImage *texture)
 	}
 }
 
-void DrawModelWithShader(Model * model, IShader &shader, TGAImage &image, TGAImage &zbuffer, Matrix &viewport_matrix)
+void DrawModelWithShader(Model * model, IShader &shader, TGAImage &image, TGAImage &zbuffer)
 {
 	Vec3f lightDir = Vec3f(0, 0, 1);
 	lightDir.normalize();
 	for (int i = 0; i < model->nfaces(); i++) 
 	{
 		Vec4f screen_coords[3];
+		
 		for (int j = 0; j < 3; j++)
 		{
 			screen_coords[j] = shader.vertex(i, j);
+			screen_coords[j] = viewport_matrix * screen_coords[j]; 
 		}
-		Graphics::DrawTriangle(screen_coords, shader, image, zbuffer, viewport_matrix);
+		Graphics::DrawTriangle(screen_coords, shader, image, zbuffer);
 	}
 }
+
+

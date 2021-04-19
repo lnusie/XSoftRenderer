@@ -137,11 +137,11 @@ void Graphics::DrawTriangleWithTexture(Vec3f * pts, Vec2f * uvs, TGAImage & imag
 	}
 }
 
-//center_pos ：观察坐标 原点位置
+//center_pos ：相机朝向的点
 Matrix Graphics::LookAtLH(Vec3f eye_pos, Vec3f center_pos, Vec3f up)
 {
 	Matrix matrix = Matrix::identity();
-	Vec3f& z = (center_pos - eye_pos).normalize();
+	Vec3f& z = (eye_pos - center_pos).normalize();//和其他空间不同，观察空间是采用右手坐标系，故z轴方向指向相机背后
 	Vec3f& x = cross(z, up).normalize();
 	Vec3f& y = cross(x, z).normalize();
 	float eye_x = -(x * eye_pos);
@@ -164,15 +164,16 @@ Matrix Graphics::LookAtLH(Vec3f eye_pos, Vec3f center_pos, Vec3f up)
 float rad2angle = 57.3;
 float angle2rad = 0.01745;
 
+///fov_y:视野在y轴角度， aspect：纵横比
 Matrix Graphics::Projection(float fov_y, float aspect, float z_near, float z_far)
 {
 	Matrix matrix = Matrix();
-	float cot = 1 / std::tan(fov_y * angle2rad * 0.5f);
-	matrix[0][0] = cot / aspect;
-	matrix[1][1] = cot;
-	matrix[2][2] = -(z_far + z_near) / (z_far - z_near);
-	matrix[2][3] = -z_near * z_far / (z_far - z_near);
-	matrix[3][2] = 1;
+	float tan = std::tan(fov_y * angle2rad * 0.5f);
+	matrix[0][0] = aspect / tan;
+	matrix[1][1] = 1 / tan;
+	matrix[2][2] = (z_near + z_far) / (z_near - z_far);
+	matrix[2][3] = 2 * z_near * z_far / (z_near - z_far);
+	matrix[3][2] = -1;
 	return matrix;
 }
 
@@ -190,7 +191,7 @@ Matrix Graphics::Viewport(Vec2i pos, Vec2i size, int depth = 255)
 	Matrix m = Matrix::identity();
 	m[0][3] = pos[0] + size[0] / 2.f;
 	m[1][3] = pos[1] + size[1] / 2.f;
-	m[2][3] = 0;
+	m[2][3] = depth / 2.f;
 
 	m[0][0] = size[0] / 2.f;
 	m[1][1] = size[1] / 2.f;
@@ -211,19 +212,14 @@ Matrix Graphics::Object2World(Vec3f o, Vec3f x, Vec3f y, Vec3f z)
 	return m;
 }
 
-void Graphics::DrawTriangle(Vec4f * pts, IShader & shader, TGAImage & image, TGAImage & zbuffer, Matrix &viewport_matrix)
+void Graphics::DrawTriangle(Vec4f * pts, IShader & shader, TGAImage & image, TGAImage & zbuffer)
 {
 	int width = image.get_width();
 	int height = image.get_height();
-	//齐次除法：转换到NDC空间下
+	//因为已经乘以viewport矩阵，所以此时齐次除法后的坐标xy就是屏幕坐标
 	Vec4f v1 = pts[0] / pts[0].w;
-	Vec4f v2 = pts[1] / pts[0].w;
-	Vec4f v3 = pts[2] / pts[0].w;
-
-	//转到屏幕空间
-	v1 = viewport_matrix * v1;
-	v2 = viewport_matrix * v2;
-	v3 = viewport_matrix * v3;
+	Vec4f v2 = pts[1] / pts[1].w;
+ 	Vec4f v3 = pts[2] / pts[2].w;
 
 	int xMin = min(v1[0], v2[0], v3[0]);
 	xMin = std::max(0, xMin);
@@ -234,32 +230,30 @@ void Graphics::DrawTriangle(Vec4f * pts, IShader & shader, TGAImage & image, TGA
 	int yMax = max(v1[1], v2[1], v3[1]);
 	yMax = std::min(height, yMax);
 
-	Vec2i verts[3] = { Vec2i(v1[0], v1[1]),Vec2i(v2[0], v2[1]),Vec2i(v3[0], v3[1]) };
+	Vec2i verts[3] = { Vec2i(v1[0], v1[1]),Vec2i(v2[0], v2[1]),Vec2i(v3[0], v3[1])};
+	Vec2f* uvs = shader.uv;
+	Vec2f uv;
 	for (int i = xMin; i <= xMax; i++)
 	{
 		for (int j = yMin; j <= yMax; j++)
 		{
 			Vec2i p(i, j);
-			Vec3f bc = barycentric(verts, p);
+			Vec3f bc = barycentric(verts, p); //质心必须用三维空间的坐标
+
 			if (bc[0] < 0 || bc[1] < 0 || bc[2] < 0) continue;
-			//float z = v1[2] * bc.x + v2[2] * bc.y + v3[2] * bc.z;
-			float w = v1[3] * bc.x + v2[3] * bc.y + v3[3] * bc.z;
-			std::cout << "w : " << w << std::endl;
-			return;
+			float w = v1[3] * bc.x + v2[3] * bc.y + v3[3] * bc.z; //w是实际深度值
+			float z = v1[2] * bc.x + v2[2] * bc.y + v3[2] * bc.z;
 
-			//int idx = i + j * width;
-			//if (zbuffer[idx] > z_value) continue;
-			//zbuffer[idx] = z_value;
-			//float u = uvs[0][0] * bc[0] + uvs[1][0] * bc[1] + uvs[2][0] * bc[2];
-			//float v = uvs[0][1] * bc[0] + uvs[1][1] * bc[1] + uvs[2][1] * bc[2];
-			//v = 1 - v;
-			////float u = (uvs[0].u + uvs[1].u + uvs[2].u) / 3;
-			////float v = (uvs[0].v + uvs[1].v + uvs[2].v) / 3;
+			if (zbuffer.get(i,j).r > z) continue;//深度测试
+			zbuffer.set(i,j, TGAColor(z, 1));
 
-			//TGAColor color = texture->get(u * texture->get_width(), v * texture->get_height());
-			////TGAColor color = TGAColor(rand() % 255 * v, rand() % 255 * v, rand() % 255 * v, 255);
-			////TGAColor color = TGAColor(rand() % 255 * u, rand() % 255 * u, rand() % 255 * u, 255);
-			//image.set(i, j, color);
+			uv.x = uvs[0].x * bc[0] + uvs[1].x * bc[1] + uvs[2].x * bc[2];
+			uv.y = uvs[0].y * bc[0] + uvs[1].y * bc[1] + uvs[2].y * bc[2];
+			uv.y = 1 - uv.y;
+
+			TGAColor color;
+			shader.fragment(Vec3f(i, j, z / 255), color, uv);
+			image.set(i, j, color);
 		}
 	}
 
