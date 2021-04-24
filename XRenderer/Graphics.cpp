@@ -1,3 +1,4 @@
+
 #include "graphics.h"
 #include "tgaimage.h"
 #include <cmath>
@@ -142,7 +143,7 @@ void Graphics::DrawTriangleWithTexture(Vec3f * pts, Vec2f * uvs, TGAImage & imag
 }
 
 //center_pos ：相机朝向的点
-Matrix Graphics::LookAtLH(Vec3f eye_pos, Vec3f center_pos, Vec3f up)
+Matrix Graphics::LookAtRH(Vec3f eye_pos, Vec3f center_pos, Vec3f up)
 {
 	Matrix matrix = Matrix::identity();
 	Vec3f& z = (eye_pos - center_pos).normalize();
@@ -164,7 +165,6 @@ Matrix Graphics::LookAtLH(Vec3f eye_pos, Vec3f center_pos, Vec3f up)
 	matrix[3][3] = 1;
 	return matrix;
 }
-
 
 Matrix Graphics::OrthogonalProj(float width, float height, float z_near, float z_far)
 {
@@ -229,6 +229,18 @@ Matrix Graphics::Object2World(Vec3f o, Vec3f x, Vec3f y, Vec3f z)
 	return m;
 }
 
+Vec4f Sample2D(TGAImage &image, Vec2f uv)
+{
+	TGAColor color = image.get(uv.x * image.get_width(), uv.y * image.get_height());
+	return Vec4f((float)color.r / 255, (float)color.g/255, (float)color.b / 255, (float)color.a / 255);
+}
+
+bool IsOutsideView(Vec4f p)
+{
+	return p.x < -p.w || p.x > p.w || p.y < -p.w || p.y > p.w || p.z < -p.w || p.z > p.w;
+}
+
+
 void Graphics::DrawTriangle(Vec4f * pts, IShader & shader, TGAImage & image, TGAImage & zbuffer)
 {
 	int width = image.get_width();
@@ -237,7 +249,6 @@ void Graphics::DrawTriangle(Vec4f * pts, IShader & shader, TGAImage & image, TGA
 	Vec4f v1 = pts[0] / pts[0].w;
 	Vec4f v2 = pts[1] / pts[1].w;
  	Vec4f v3 = pts[2] / pts[2].w;
-	
 
 	int xMin = min(v1[0], v2[0], v3[0]);
 	xMin = std::max(0, xMin);
@@ -247,7 +258,6 @@ void Graphics::DrawTriangle(Vec4f * pts, IShader & shader, TGAImage & image, TGA
 	yMin = std::max(0, yMin);
 	int yMax = max(v1[1], v2[1], v3[1]);
 	yMax = std::min(height, yMax);
-
 
 	Vec2i verts[3] = {Vec2i(v1[0], v1[1]),Vec2i(v2[0], v2[1]),Vec2i(v3[0], v3[1])};
 	Vec2f uv;
@@ -267,12 +277,8 @@ void Graphics::DrawTriangle(Vec4f * pts, IShader & shader, TGAImage & image, TGA
 			if (zbuffer.get(i,j).r > z) continue;//深度测试
 			zbuffer.set(i,j, TGAColor(z, 1));
 
-			/*uv.x = uvs[0].x * bc[0] + uvs[1].x * bc[1] + uvs[2].x * bc[2];
-			uv.y = uvs[0].y * bc[0] + uvs[1].y * bc[1] + uvs[2].y * bc[2];
-			uv.y = 1 - uv.y;*/
-
 			Vec4f colorWeight;
-			shader.fragment(bc, colorWeight, vz);
+			shader.fragment(bc, colorWeight);
 			TGAColor color = TGAColor(
 				(int)(255 * colorWeight.x) % 255, 
 				(int)(255 * colorWeight.y) % 255,
@@ -286,37 +292,20 @@ void Graphics::DrawTriangle(Vec4f * pts, IShader & shader, TGAImage & image, TGA
 
 void Graphics::DrawTriangle(Vec4f * pts, IShader & shader, TGAImage & image, float *zBuffer)
 {
-	int width = image.get_width();
-	int height = image.get_height();
-	//if (!(pts[0].w > 2.2)) return;
+	//剔除
+	if (IsOutsideView(pts[0]) && IsOutsideView(pts[1]) && IsOutsideView(pts[2])) return;
+
 	Vec4f v1 = pts[0] / pts[0].w;
 	Vec4f v2 = pts[1] / pts[1].w;
 	Vec4f v3 = pts[2] / pts[2].w;
-	
-	Matrix viewport_matrix = Graphics::Viewport(Vec2i(0, 0), Vec2i(width, height), 255);
-	v1 = viewport_matrix * v1;
-	v2 = viewport_matrix * v2;
-	v3 = viewport_matrix * v3;
-
-	//v1.x = v1.x * (width / 2) + (width / 2);
-	//v1.y = v1.y * (height / 2) + (height / 2);
-	//v2.x = v2.x * (width / 2) + (width / 2);
-	//v2.y = v2.y * (height / 2) + (height / 2);
-	//v3.x = v3.x * (width / 2) + (width / 2);
-	//v3.y = v3.y * (height / 2) + (height / 2);
-	/*TGAColor white = TGAColor(255, 255, 255, 255);
-
-	Graphics::DrawLine(v1.x, v1.y, v2.x, v2.y, image, white);
-	Graphics::DrawLine(v2.x, v2.y, v3.x, v3.y, image, white);
-	Graphics::DrawLine(v1.x, v1.y, v3.x, v3.y, image, white);
-
-	return;*/
 
 
 	float rhw0 = 1 / pts[0].w;
 	float rhw1 = 1 / pts[1].w;
 	float rhw2 = 1 / pts[2].w;
 
+	int width = image.get_width();
+	int height = image.get_height();
 	int xMin = min(v1[0], v2[0], v3[0]);
 	xMin = std::max(0, xMin);
 	int xMax = max(v1[0], v2[0], v3[0]);
@@ -332,49 +321,36 @@ void Graphics::DrawTriangle(Vec4f * pts, IShader & shader, TGAImage & image, flo
 		for (int j = yMin; j <= yMax; j++)
 		{
 			Vec2i p(i, j);
-
 			Vec3f bc = barycentric(verts, p);
 			if (bc.x < 0 || bc.y < 0 || bc.z < 0) continue;
-
-		
 			float rhw = rhw0 * bc.x + rhw1 * bc.y + rhw2 * bc.z;
 			float w = 1 / ((rhw != 0.0f) ? rhw : 1.0f);
-			
 			bc.x = rhw0 * bc.x * w;
 			bc.y = rhw1 * bc.y * w;
 			bc.z = rhw2 * bc.z * w;
-
 			int idx = i + j * width;
-			
 			if (zBuffer[idx] < w) continue;
 			zBuffer[idx] = w;
-
 			Vec4f colorWeight;
-			shader.fragment(bc, colorWeight, 1);
+			shader.fragment(bc, colorWeight);
 			TGAColor color = TGAColor(
 				(int)(255 * colorWeight.x) % 255,
 				(int)(255 * colorWeight.y) % 255,
 				(int)(255 * colorWeight.z) % 255,
 				(int)(255 * colorWeight.w) % 255);
 			image.set(i, j, color);
-			
 		}
 	}
-
 }
 
-
-void Graphics::DrawTriangle(Vec4f *pts, IShader &shader, TGAImage &image)
+void Graphics::DrawTriangleOrthogonal(Vec4f *pts, IShader &shader, TGAImage &image, TGAImage & zbuffer)
 {
 	int width = image.get_width();
 	int height = image.get_height();
-	Vec4f v1 = pts[0] / pts[0].w;
-	Vec4f v2 = pts[1] / pts[1].w;
-	Vec4f v3 = pts[2] / pts[2].w;
-
-
+	Vec4f v1 = pts[0];
+	Vec4f v2 = pts[1];
+	Vec4f v3 = pts[2];
 		
-	return;
 	int xMin = min(v1[0], v2[0], v3[0]);
 	xMin = std::max(0, xMin);
 	int xMax = max(v1[0], v2[0], v3[0]);
@@ -391,19 +367,16 @@ void Graphics::DrawTriangle(Vec4f *pts, IShader &shader, TGAImage &image)
 		for (int j = yMin; j <= yMax; j++)
 		{
 			Vec2i p(i, j);
-
 			Vec3f bc = barycentric(verts, p);
-			bc.x = bc.x / pts[0].w;
-			bc.y = bc.y / pts[1].w;
-			bc.z = bc.z / pts[2].w;
-			float vz = 1 / (bc.x + bc.y + bc.z);
-
 			if (bc.x < 0 || bc.y < 0 || bc.z < 0) continue;
-			float z = v1[2] * bc.x + v2[2] * bc.y + v3[2] * bc.z;
-			float w = v1[3] * bc.x + v2[3] * bc.y + v3[3] * bc.z;
+			float z = v1.z * bc.x + v2.z * bc.y + v3.z * bc.z;
+			z = std::max(0.0f, 255 - z);
+			TGAColor depth = zbuffer.get(i, j);
+			if (depth.val > z) continue;
+			zbuffer.set(i,j, TGAColor(z, TGAImage::GRAYSCALE));
 
 			Vec4f colorWeight;
-			shader.fragment(bc, colorWeight, 1);
+			shader.fragment(bc, colorWeight);
 			TGAColor color = TGAColor(
 				(int)(255 * colorWeight.x) % 255,
 				(int)(255 * colorWeight.y) % 255,
@@ -413,3 +386,4 @@ void Graphics::DrawTriangle(Vec4f *pts, IShader &shader, TGAImage &image)
 		}
 	}
 }
+
