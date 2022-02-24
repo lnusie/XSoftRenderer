@@ -11,5 +11,5 @@
 
 &emsp;&emsp;&emsp;5.模拟Shader渲染  
 
-&emsp;&emsp;&emsp;6.简易灯光shadE  
+&emsp;&emsp;&emsp;6.简易灯光shade
 
