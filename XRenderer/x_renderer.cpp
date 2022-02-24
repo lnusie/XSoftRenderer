@@ -237,7 +237,7 @@ void DrawModelWithShader(Model * model, IShader &shader, TGAImage &image, TGAIma
 	for (int i = 0; i < model->nfaces(); i++) 
 	{
 		Vec4f screen_coords[3];
-		shader.flat_col = TGAColor(rand() % 255, rand() % 255, rand() % 255, 255);
+		//shader.flat_col = TGAColor(rand() % 255, rand() % 255, rand() % 255, 255);
 
 		for (int j = 0; j < 3; j++)
 		{
